@@ -1,4 +1,4 @@
-module github.com/vaibhav/ai-interview
+module github.com/vaibhavsh2/ai-interview
 
 go 1.25.6
 

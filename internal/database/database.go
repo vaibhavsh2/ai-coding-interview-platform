@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/vaibhav/ai-interview/internal/config"
+	"github.com/vaibhavsh2/ai-interview/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

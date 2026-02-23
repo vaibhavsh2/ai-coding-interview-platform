@@ -14,8 +14,11 @@ type CodingQuestion struct {
 	Difficulty  string
 	TimeLimit   int
 	MemoryLimit int
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+
+	TestCases []TestCase `gorm:"foreignKey:QuestionID"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (q *CodingQuestion) BeforeCreate(tx *gorm.DB) (err error) {

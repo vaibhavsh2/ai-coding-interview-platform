@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vaibhav/ai-interview/internal/config"
-	"github.com/vaibhav/ai-interview/internal/database"
-	"github.com/vaibhav/ai-interview/internal/handlers"
-	"github.com/vaibhav/ai-interview/internal/models"
+	"github.com/vaibhavsh2/ai-interview/internal/config"
+	"github.com/vaibhavsh2/ai-interview/internal/database"
+	"github.com/vaibhavsh2/ai-interview/internal/handlers"
+	"github.com/vaibhavsh2/ai-interview/internal/models"
 )
 
 func main() {
@@ -22,10 +22,13 @@ func main() {
 		&models.TestCase{},
 	)
 	questionHandler := handlers.NewQuestionHandler(db)
+	testCaseHandler := handlers.NewTestCaseHandler(db)
 	// Create Gin router
 	r := gin.Default()
 	r.POST("/questions", questionHandler.CreateQuestion)
 	r.GET("/questions", questionHandler.GetAllQuestions)
+	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
+	r.GET("/questions/:id/testcases", testCaseHandler.GetTestCasesByQuestion)
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
