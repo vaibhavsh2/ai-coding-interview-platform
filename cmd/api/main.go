@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/vaibhavsh2/ai-interview/internal/config"
 	"github.com/vaibhavsh2/ai-interview/internal/database"
 	"github.com/vaibhavsh2/ai-interview/internal/handlers"
 	"github.com/vaibhavsh2/ai-interview/internal/models"
+	"log"
 )
 
 func main() {
@@ -27,6 +27,7 @@ func main() {
 	submissionHandler := handlers.NewSubmissionHandler(db)
 	// Create Gin router
 	r := gin.Default()
+	r.Use(cors.Default())
 	r.POST("/questions", questionHandler.CreateQuestion)
 	r.GET("/questions", questionHandler.GetAllQuestions)
 	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
