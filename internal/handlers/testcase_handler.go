@@ -17,7 +17,6 @@ func NewTestCaseHandler(db *gorm.DB) *TestCaseHandler {
 	return &TestCaseHandler{DB: db}
 }
 
-// POST /questions/:id/testcases
 func (h *TestCaseHandler) CreateTestCase(c *gin.Context) {
 
 	questionIDParam := c.Param("id")
@@ -45,7 +44,6 @@ func (h *TestCaseHandler) CreateTestCase(c *gin.Context) {
 	c.JSON(http.StatusCreated, testCase)
 }
 
-// GET /questions/:id/testcases
 func (h *TestCaseHandler) GetTestCasesByQuestion(c *gin.Context) {
 
 	questionIDParam := c.Param("id")

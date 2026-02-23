@@ -23,7 +23,6 @@ func NewSubmissionHandler(db *gorm.DB) *SubmissionHandler {
 	}
 }
 
-// POST /questions/:id/submit
 func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
 
 	questionIDParam := c.Param("id")
@@ -49,13 +48,11 @@ func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
 		return
 	}
 
-	// Async execution
 	go h.Executor.ExecuteSubmission(submission.ID)
 
 	c.JSON(http.StatusCreated, submission)
 }
 
-// GET /submissions/:id
 func (h *SubmissionHandler) GetSubmissionByID(c *gin.Context) {
 
 	submissionIDParam := c.Param("id")
