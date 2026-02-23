@@ -20,6 +20,7 @@ func main() {
 	db.AutoMigrate(
 		&models.CodingQuestion{},
 		&models.TestCase{},
+		&models.Submission{},
 	)
 	questionHandler := handlers.NewQuestionHandler(db)
 	testCaseHandler := handlers.NewTestCaseHandler(db)
@@ -29,6 +30,10 @@ func main() {
 	r.GET("/questions", questionHandler.GetAllQuestions)
 	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
 	r.GET("/questions/:id/testcases", testCaseHandler.GetTestCasesByQuestion)
+
+	submissionHandler := handlers.NewSubmissionHandler(db)
+
+	r.POST("/questions/:id/submit", submissionHandler.CreateSubmission)
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
