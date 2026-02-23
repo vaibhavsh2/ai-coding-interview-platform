@@ -24,14 +24,14 @@ func main() {
 	)
 	questionHandler := handlers.NewQuestionHandler(db)
 	testCaseHandler := handlers.NewTestCaseHandler(db)
+	submissionHandler := handlers.NewSubmissionHandler(db)
 	// Create Gin router
 	r := gin.Default()
 	r.POST("/questions", questionHandler.CreateQuestion)
 	r.GET("/questions", questionHandler.GetAllQuestions)
 	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
 	r.GET("/questions/:id/testcases", testCaseHandler.GetTestCasesByQuestion)
-
-	submissionHandler := handlers.NewSubmissionHandler(db)
+	r.GET("/submissions/:id", submissionHandler.GetSubmissionByID)
 
 	r.POST("/questions/:id/submit", submissionHandler.CreateSubmission)
 	// Health check endpoint
@@ -42,7 +42,11 @@ func main() {
 	})
 
 	log.Println("Server running on port 8080")
-
+	r.GET("/submissions", func(c *gin.Context) {
+		var subs []models.Submission
+		db.Find(&subs)
+		c.JSON(200, subs)
+	})
 	r.Run(":8080")
 
 	_ = db
