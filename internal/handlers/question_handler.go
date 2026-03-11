@@ -16,6 +16,7 @@ func NewQuestionHandler(db *gorm.DB) *QuestionHandler {
 	return &QuestionHandler{DB: db}
 }
 
+// POST /questions
 func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 
 	var question models.CodingQuestion
@@ -33,6 +34,7 @@ func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 	c.JSON(http.StatusCreated, question)
 }
 
+// GET /questions
 func (h *QuestionHandler) GetAllQuestions(c *gin.Context) {
 
 	var questions []models.CodingQuestion
@@ -43,4 +45,19 @@ func (h *QuestionHandler) GetAllQuestions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, questions)
+}
+
+// GET /questions/:id
+func (h *QuestionHandler) GetQuestionByID(c *gin.Context) {
+
+	id := c.Param("id")
+
+	var question models.CodingQuestion
+
+	if err := h.DB.First(&question, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, question)
 }

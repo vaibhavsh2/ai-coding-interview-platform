@@ -1,41 +1,44 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/vaibhavsh2/ai-interview/internal/config"
 	"github.com/vaibhavsh2/ai-interview/internal/database"
 	"github.com/vaibhavsh2/ai-interview/internal/handlers"
 	"github.com/vaibhavsh2/ai-interview/internal/models"
-	"log"
+	"github.com/vaibhavsh2/ai-interview/internal/service"
 )
 
 func main() {
 
-	// Load configuration
 	cfg := config.LoadConfig()
-
-	// Connect database
 	db := database.Connect(cfg)
 	db.AutoMigrate(
 		&models.CodingQuestion{},
 		&models.TestCase{},
 		&models.Submission{},
+		&models.User{},
 	)
 	questionHandler := handlers.NewQuestionHandler(db)
 	testCaseHandler := handlers.NewTestCaseHandler(db)
 	submissionHandler := handlers.NewSubmissionHandler(db)
-	// Create Gin router
+
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.POST("/questions", questionHandler.CreateQuestion)
+	r.GET("/questions/:id", questionHandler.GetQuestionByID)
 	r.GET("/questions", questionHandler.GetAllQuestions)
 	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
 	r.GET("/questions/:id/testcases", testCaseHandler.GetTestCasesByQuestion)
 	r.GET("/submissions/:id", submissionHandler.GetSubmissionByID)
+	authHandler := handlers.NewAuthHandler(db)
 
+	r.POST("/auth/register", authHandler.Register)
+	r.POST("/auth/login", authHandler.Login)
 	r.POST("/questions/:id/submit", submissionHandler.CreateSubmission)
-	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "OK",
@@ -48,6 +51,8 @@ func main() {
 		db.Find(&subs)
 		c.JSON(200, subs)
 	})
+	worker := service.NewExecutionWorker(db)
+	go worker.Start()
 	r.Run(":8080")
 
 	_ = db
