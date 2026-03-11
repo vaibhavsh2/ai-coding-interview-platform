@@ -17,6 +17,7 @@ func main() {
 	cfg := config.LoadConfig()
 	db := database.Connect(cfg)
 	db.AutoMigrate(
+		&models.Assignment{},
 		&models.CodingQuestion{},
 		&models.TestCase{},
 		&models.Submission{},
@@ -34,10 +35,15 @@ func main() {
 	r.POST("/questions/:id/testcases", testCaseHandler.CreateTestCase)
 	r.GET("/questions/:id/testcases", testCaseHandler.GetTestCasesByQuestion)
 	r.GET("/submissions/:id", submissionHandler.GetSubmissionByID)
+
+	assignmentHandler := handlers.NewAssignmentHandler(db)
+	r.POST("/assignments", assignmentHandler.CreateAssignment)
+	r.GET("/assignments", assignmentHandler.GetAssignments)
 	authHandler := handlers.NewAuthHandler(db)
 
 	r.POST("/auth/register", authHandler.Register)
 	r.POST("/auth/login", authHandler.Login)
+	r.GET("/assignments/:id/questions", assignmentHandler.GetQuestionsByAssignment)
 	r.POST("/questions/:id/submit", submissionHandler.CreateSubmission)
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
