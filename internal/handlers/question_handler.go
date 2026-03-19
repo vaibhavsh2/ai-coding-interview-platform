@@ -19,19 +19,51 @@ func NewQuestionHandler(db *gorm.DB) *QuestionHandler {
 // POST /questions
 func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 
-	var question models.CodingQuestion
+	var req struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Difficulty  string `json:"difficulty"`
 
-	if err := c.ShouldBindJSON(&question); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		TestCases []struct {
+			Input          string `json:"input"`
+			ExpectedOutput string `json:"expectedOutput"`
+		} `json:"testcases"`
+	}
+
+	// Bind request
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Create question
+	question := models.CodingQuestion{
+		Title:       req.Title,
+		Description: req.Description,
+		Difficulty:  req.Difficulty,
 	}
 
 	if err := h.DB.Create(&question).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create question"})
+		c.JSON(500, gin.H{"error": "Failed to create question"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, question)
+	// 🔥 Create testcases automatically
+	for _, tc := range req.TestCases {
+
+		testcase := models.TestCase{
+			QuestionID:     question.ID,
+			Input:          tc.Input,
+			ExpectedOutput: tc.ExpectedOutput,
+		}
+
+		h.DB.Create(&testcase)
+	}
+
+	c.JSON(201, gin.H{
+		"message": "Question created with testcases",
+		"id":      question.ID,
+	})
 }
 
 // GET /questions
