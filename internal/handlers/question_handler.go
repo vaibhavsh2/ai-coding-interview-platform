@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/vaibhavsh2/ai-interview/internal/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -20,6 +21,7 @@ func NewQuestionHandler(db *gorm.DB) *QuestionHandler {
 func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 
 	var req struct {
+		AssignmentID string `json:"assignment_id"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
 		Difficulty  string `json:"difficulty"`
@@ -37,10 +39,18 @@ func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 	}
 
 	// Create question
+	var assignUUID uuid.UUID
+	if req.AssignmentID != "" {
+		if parsed, err := uuid.Parse(req.AssignmentID); err == nil {
+			assignUUID = parsed
+		}
+	}
+
 	question := models.CodingQuestion{
-		Title:       req.Title,
-		Description: req.Description,
-		Difficulty:  req.Difficulty,
+		Title:        req.Title,
+		Description:  req.Description,
+		Difficulty:   req.Difficulty,
+		AssignmentID: assignUUID,
 	}
 
 	if err := h.DB.Create(&question).Error; err != nil {

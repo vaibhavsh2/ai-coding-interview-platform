@@ -12,5 +12,6 @@ type User struct {
 	Password  string
 	Name      string
 	Provider  string // local, google
+	Role      string `gorm:"default:'CANDIDATE'"` // CANDIDATE, ADMIN
 	CreatedAt time.Time
 }

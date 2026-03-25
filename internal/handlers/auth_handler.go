@@ -89,7 +89,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// 🔑 Generate JWT token
-	token, err := utils.GenerateToken(user.ID, user.Email)
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
 		return
@@ -97,5 +97,38 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
+		"role":  user.Role,
+	})
+}
+
+// CANDIDATE PASSWORDLESS LOGIN
+func (h *AuthHandler) CandidateLogin(c *gin.Context) {
+
+	var req struct {
+		CandidateID string `json:"candidate_id"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	var user models.User
+
+	if err := h.DB.Where("email = ?", req.CandidateID).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Candidate ID"})
+		return
+	}
+
+	// 🔑 Generate JWT token instantly
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+		"role":  user.Role,
 	})
 }

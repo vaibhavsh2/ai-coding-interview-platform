@@ -62,32 +62,60 @@ func (w *ExecutionWorker) processSubmission(sub *models.Submission) {
 	passed := 0
 	total := len(testCases)
 
+	// Map Submission Language string to Judge0 Language ID
+	langID := 62 // Default to Java
+	switch strings.ToLower(sub.Language) {
+	case "python":
+		langID = 71
+	case "cpp", "c++":
+		langID = 54
+	case "c":
+		langID = 50
+	case "javascript", "js":
+		langID = 93
+	case "java":
+		langID = 62
+	}
+
 	for _, test := range testCases {
 
 		// 🔥 send to Judge0
-		token, err := SubmitToJudge(sub.SourceCode, test.Input)
+		token, err := SubmitToJudge(sub.SourceCode, test.Input, langID)
 		if err != nil {
 			log.Println("Judge submit error:", err)
 			continue
 		}
 
-		// wait for execution
-		time.Sleep(2 * time.Second)
+		var result JudgeResult
 
-		result, err := GetJudgeResult(token)
-		if err != nil {
-			log.Println("Judge result error:", err)
-			continue
+		// 🔥 Poll Judge0 for result up to 5 times
+		for tries := 0; tries < 5; tries++ {
+			time.Sleep(2 * time.Second)
+			
+			res, err := GetJudgeResult(token)
+			if err != nil {
+				log.Println("Judge result poll error:", err)
+				continue
+			}
+			
+			// If not pending, we can stop polling
+			if res.Status.Description != "In Queue" && res.Status.Description != "Processing" {
+				result = res
+				break
+			}
 		}
 
 		output := strings.TrimSpace(result.Stdout)
 		expected := strings.TrimSpace(test.ExpectedOutput)
 
+		output = strings.ReplaceAll(output, "\r\n", "\n")
+		expected = strings.ReplaceAll(expected, "\r\n", "\n")
+
 		log.Println("Output:", output)
 		log.Println("Expected:", expected)
 		log.Println("Status:", result.Status.Description)
 
-		if output == expected {
+		if result.Status.Description == "Accepted" && output == expected {
 			passed++
 		}
 	}

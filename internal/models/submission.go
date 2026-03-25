@@ -9,6 +9,7 @@ import (
 
 type Submission struct {
 	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
+	CandidateID   uuid.UUID `gorm:"type:uuid;not null;index"`
 	QuestionID    uuid.UUID `gorm:"type:uuid;not null"`
 	Language      string
 	SourceCode    string

@@ -6,20 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/vaibhavsh2/ai-interview/internal/models"
-	"github.com/vaibhavsh2/ai-interview/internal/service"
 	"github.com/vaibhavsh2/ai-interview/internal/state"
 	"gorm.io/gorm"
 )
 
 type SubmissionHandler struct {
-	DB       *gorm.DB
-	Executor *service.ExecutionService
+	DB *gorm.DB
 }
 
 func NewSubmissionHandler(db *gorm.DB) *SubmissionHandler {
 	return &SubmissionHandler{
-		DB:       db,
-		Executor: service.NewExecutionService(db),
+		DB: db,
 	}
 }
 
@@ -43,12 +40,17 @@ func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
 	submission.QuestionID = questionID
 	submission.Status = state.StatusSubmitted
 
+	userIDStr, exists := c.Get("user_id")
+	if exists {
+		if CandidateUUID, err := uuid.Parse(userIDStr.(string)); err == nil {
+			submission.CandidateID = CandidateUUID
+		}
+	}
+
 	if err := h.DB.Create(&submission).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create submission"})
 		return
 	}
-
-	go h.Executor.ExecuteSubmission(submission.ID)
 
 	c.JSON(http.StatusCreated, submission)
 }

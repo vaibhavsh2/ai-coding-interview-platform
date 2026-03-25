@@ -26,10 +26,10 @@ type JudgeResult struct {
 }
 
 // Step 1: Send code to Judge0
-func SubmitToJudge(code string, input string) (string, error) {
+func SubmitToJudge(code string, input string, languageID int) (string, error) {
 
 	body := JudgeRequest{
-		LanguageID: 62, // Java
+		LanguageID: languageID,
 		SourceCode: code,
 		Stdin:      input,
 	}
